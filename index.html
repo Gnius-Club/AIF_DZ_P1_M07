@@ -2,1047 +2,618 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Constructores de la Galaxia: Misión a Contrarreloj</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Constructores de la Galaxia: Final Stable</title>
 
 <style>
   /* ------------------------------
-     ESTILOS GENERALES / ACCESIBILIDAD
+     ESTILOS BASE
      ------------------------------ */
   :root{
-    --bg:#0b0f1a;
-    --panel:#121a2b;
-    --panel-2:#0f1630;
-    --accent:#22d3ee;   /* cian brillante alto contraste */
-    --accent-2:#f59e0b; /* dorado */
-    --ok:#10b981;
-    --warn:#ef4444;
-    --text:#e5e7eb;     /* gris muy claro */
-    --muted:#93c5fd;
-    --shadow: 0 10px 24px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.04);
+    --bg:#0b0f1a; --panel:#1e293b; --accent:#22d3ee;
+    --warn:#ef4444; --ok:#10b981; --text:#f8fafc; --gold:#f59e0b;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
   body{
-    margin:0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    color:var(--text);
-    background: radial-gradient(1200px 600px at 10% -10%, #18213d 0%, #0b0f1a 40%) fixed,
-               radial-gradient(1200px 600px at 110% 110%, #0a1228 0%, #0b0f1a 40%) fixed;
+    margin:0; font-family: 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+    color:var(--text); height:100vh; overflow:hidden;
+    display:flex; flex-direction:column;
   }
   button{
-    background:linear-gradient(180deg, #21c8e5, #0ea5b7);
-    color:#001018;
-    border:none;
-    border-radius:14px;
-    padding:12px 18px;
-    font-weight:700;
-    font-size:16px;
-    cursor:pointer;
-    box-shadow:var(--shadow);
-    transition: transform .06s ease, filter .2s ease;
+    background:linear-gradient(180deg, #38bdf8, #0ea5b7);
+    border:none; border-radius:8px; padding:10px 20px;
+    font-weight:bold; color:#0f172a; cursor:pointer;
+    box-shadow: 0 4px 0 #0284c7; transition:transform .1s;
   }
-  button:hover{ transform: translateY(-1px); filter:brightness(1.05) }
-  button:active{ transform: translateY(0) scale(.98) }
-
-  .btn-ghost{ background:#22324f; color:var(--text) }
-  .btn-warn { background: linear-gradient(180deg, #f59e0b, #e8790a); color:#1b1000 }
-  .btn-mute { background:#233047 }
-
-  .wrap{
-    max-width:1200px;
-    margin:0 auto;
-    padding:24px;
-  }
-
-  .hidden{ display:none !important }
-  .sr-only{
-    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0
-  }
+  button:active{ transform:translateY(4px); box-shadow:none; }
+  button:disabled{ filter:grayscale(1); cursor:not-allowed; }
+  .hidden{ display:none !important; }
 
   /* ------------------------------
-     PANTALLA: HANGAR / BRIEFING
+     UI PRINCIPAL
      ------------------------------ */
-  #screen-briefing{
-    min-height:100vh;
-    display:grid;
-    place-items:center;
+  .topbar{
+    padding:10px 20px; background:rgba(0,0,0,0.4);
+    display:flex; justify-content:space-between; align-items:center;
+    height: 60px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
   }
-  .briefing-card{
-    width:min(980px, 95vw);
-    background: linear-gradient(180deg, #10172b, #0c1326);
-    border:1px solid rgba(255,255,255,.07);
-    border-radius:20px;
-    padding:24px;
-    box-shadow: var(--shadow);
-  }
-  .briefing-top{
-    display:flex; gap:18px; align-items:center; margin-bottom:14px;
-  }
-  .avatar-chief{
-    width:86px;height:86px;border-radius:18px;background:#1f2a44;display:grid;place-items:center;
-    box-shadow: inset 0 0 0 2px rgba(34,211,238,.4);
-    font-size:46px;
-  }
-  .title{
-    font-size: clamp(22px, 3vw, 34px);
-    margin:0 0 6px 0; color:var(--accent)
-  }
-  .subtitle{ color:var(--muted) }
+  .lives-container { font-size: 24px; letter-spacing: 5px; }
+  .heart-lost { filter: grayscale(1) brightness(0.5); opacity: 0.5; }
 
-  .rules-grid{
-    display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin:18px 0;
-  }
-  .rule{
-    background:#0f1630; border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px;
-    box-shadow:var(--shadow);
-  }
-  .rule h4{ margin:6px 0 8px 0; color:var(--accent-2)}
-  .demo{
-    display:flex; gap:8px; align-items:flex-start; font-size:14px;
-  }
-  .demo .ok, .demo .bad{
-    flex:1; padding:8px; border-radius:10px; border:1px solid rgba(255,255,255,.06);
-  }
-  .demo .ok{ background:rgba(16,185,129,.12); }
-  .demo .bad{ background:rgba(239,68,68,.12); }
-
-  .briefing-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px }
-
-  /* ------------------------------
-     HUD DEL JUEGO (pantalla principal)
-     ------------------------------ */
-  #screen-game{ min-height:100vh }
-  .hud{
-    display:grid; grid-template-columns: 1.2fr .9fr .9fr; gap:16px;
+  .hud-grid{
+    display:grid; grid-template-columns: 1fr 1fr 280px; gap:15px;
+    padding:15px; flex:1; overflow:hidden; position:relative;
+    padding-bottom: 80px; 
   }
   .panel{
-    background:linear-gradient(180deg, #121a2b, #0e1529);
-    border:1px solid rgba(255,255,255,.07);
-    border-radius:16px; padding:14px; box-shadow:var(--shadow);
+    background:var(--panel); border:2px solid #334155; border-radius:16px;
+    position:relative; display:flex; flex-direction:column;
+    transition: all 0.3s ease;
+    overflow: hidden; /* Importante para que el hijo no deforme el padre */
   }
 
-  /* Columna: NAVE */
-  .ship-area{
-    min-height:400px; position:relative; overflow:hidden;
-    background:
-      radial-gradient(200px 120px at 20% 10%, rgba(255,255,255,.07) 0, transparent 60%),
-      radial-gradient(200px 120px at 80% 90%, rgba(255,255,255,.05) 0, transparent 60%);
+  /* NAVE */
+  .ship-container{ flex:1; display:flex; align-items:center; justify-content:center; }
+  .ship-svg{ width:70%; max-height:300px; filter:drop-shadow(0 0 10px rgba(34,211,238,0.2)); transition: transform 0.5s; }
+  .piece{ fill:#334155; opacity:0.2; transition:all .5s; }
+  .piece.placed{ fill:url(#gradBlue); opacity:1; filter:drop-shadow(0 0 5px #38bdf8); }
+  .launch{ animation: flyUp 2s ease-in forwards; }
+  @keyframes flyUp{ 0%{transform:translateY(0)} 100%{transform:translateY(-800px)} }
+  
+  .damage-shake { animation: shakeRed 0.5s ease-in-out; }
+  @keyframes shakeRed{ 
+    0%,100%{transform:translateX(0); border-color:#334155;} 
+    25%{transform:translateX(-10px); border-color:var(--warn);} 
+    75%{transform:translateX(10px); border-color:var(--warn);} 
   }
-  .ship{
-    width:100%; height:100%;
-    display:grid; place-items:center;
-  }
-  .ship-svg{
-    width:90%; max-width:520px; filter:drop-shadow(0 8px 24px rgba(0,0,0,.35));
-  }
-  .piece{
-    transition: transform .5s ease, opacity .5s ease, filter .5s ease;
-    opacity:.25; filter:grayscale(1)
-  }
-  .piece.active{ opacity:1; filter:none }
-  .piece.placed{ opacity:1; filter:none; transform:translateY(0) scale(1) }
 
-  .progress-steps{
-    margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;
+  /* ------------------------------
+     AVATARES
+     ------------------------------ */
+  .avatars-grid{
+    display:grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap:10px; padding:10px; height:100%; overflow:hidden;
   }
-  .step-dot{
-    width:18px; height:18px; border-radius:50%; background:#22324f; border:1px solid rgba(255,255,255,.1)
+  .avatar-card{
+    background:#0f172a; border:2px solid #334155; border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; transition: background .3s;
   }
-  .step-dot.done{ background:var(--ok) }
-  .step-dot.current{ outline:2px solid var(--accent); box-shadow:0 0 0 3px rgba(34,211,238,.25) }
+  .avatar-icon{ font-size:40px; }
 
-  /* Columna: VIDEOLLAMADA */
-  .call-grid{
-    display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;
+  /* BURBUJAS */
+  .bubble-container {
+    position:absolute; top:-10px; right:-10px; z-index:20;
+    display:none; flex-direction:column; align-items:center;
   }
-  .call-window{
-    position:relative;
-    background:#0b1326 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="100"><defs><pattern id="g" patternUnits="userSpaceOnUse" width="14" height="14"><circle cx="1" cy="1" r="1" fill="%23ffffff22"/></pattern></defs><rect width="100%" height="100%" fill="%230b1326"/><rect width="100%" height="100%" fill="url(%23g)"/></svg>') center/auto;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:12px; height:120px; display:grid; place-items:center; overflow:hidden;
-    box-shadow:var(--shadow);
+  .bubble-container.active { display:flex; }
+  .bubble-icon {
+    width:40px; height:40px; background:#fff; border:3px solid var(--warn);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:20px; color:#000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    animation: bounce 0.5s infinite alternate;
   }
-  .name-tag{
-    position:absolute; bottom:6px; left:6px; background:#0e1a30; padding:4px 8px; border-radius:10px; font-size:12px; border:1px solid rgba(255,255,255,.08)
+  .crisis-timer {
+    background: var(--warn); color: white; font-weight: bold;
+    font-size: 12px; padding: 2px 6px; border-radius: 10px;
+    margin-top: -8px; z-index: 22; border: 2px solid #fff;
   }
-  .bubble{
-    position:absolute; top:8px; right:8px; background:#0e1a30; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.08); font-size:12px
-  }
-  .storm{ position:absolute; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; font-size:34px }
-  .storm.active{ display:flex }
-  .rush{ animation: pulse .6s infinite alternate }
-  @keyframes pulse{ from{ transform:scale(1)} to{ transform:scale(1.06)} }
+  @keyframes bounce{ from{transform:scale(1)} to{transform:scale(1.1)} }
 
-  /* Columna: PLANO + CHAT + HERRAMIENTAS */
-  .side{
-    display:grid; grid-template-rows: auto auto 1fr; gap:10px;
-  }
-  .plan{
-    min-height:120px; position:relative;
-  }
-  .plan-steps{ display:flex; gap:8px; flex-wrap:wrap; }
-  .plan-step{
-    background:#1b2745; border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:6px 8px; font-size:12px
-  }
-  .plan-overlay-block{
-    position:absolute; inset:0; background:rgba(20,6,0,.75); display:none; align-items:center; justify-content:center; border:2px dashed #fecaca; border-radius:12px; text-align:center; padding:10px
-  }
-  .plan-overlay-block.active{ display:flex }
-
-  .tools{
-    display:flex; gap:8px; flex-wrap:wrap;
+  /* ------------------------------
+     HERRAMIENTAS Y CHAT (CORREGIDO)
+     ------------------------------ */
+  .tools-row{
+    display:flex; justify-content:space-around; padding:15px 5px;
+    background:#1e293b; border-bottom:1px solid #334155; flex-shrink: 0;
   }
   .tool{
-    font-size:28px; padding:8px 10px; border-radius:12px; border:2px solid rgba(255,255,255,.14);
-    background:#15213c; cursor:grab; user-select:none
+    width:60px; height:60px; background:#334155; border-radius:12px;
+    font-size:32px; display:flex; align-items:center; justify-content:center;
+    cursor:grab; border:3px solid transparent; position:relative; user-select:none;
   }
-  .tool:active{ cursor:grabbing; transform:scale(1.02) }
-  .tool[draggable="true"]{ -webkit-user-drag: element; }
+  .tool:active{ cursor:grabbing; }
+  .tool.glow { border-color:var(--gold); box-shadow: 0 0 15px var(--gold); }
 
-  .chat{
-    min-height:130px; background:#0f172a; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px; position:relative; overflow:hidden
+  /* CORRECCIÓN DEL CHAT: Scroll interno y altura controlada */
+  .chat-box{ 
+    flex: 1; 
+    padding: 10px; 
+    font-size: 13px; 
+    overflow-y: auto; /* Scroll vertical */
+    display: flex; 
+    flex-direction: column-reverse; /* Mensajes nuevos abajo visualmente si usas prepend, o arriba si append */
+    min-height: 0; /* TRUCO FLEXBOX: Permite que el contenedor se encoja si es necesario */
   }
-  .chat-messages{ max-height:100px; overflow:auto; font-size:13px; line-height:1.2 }
-  .chat-flood{
-    position:absolute; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; text-align:center; padding:10px; border: 2px dashed #eab308; border-radius:12px
-  }
-  .chat-flood.active{ display:flex }
+  /* Estilizado del scrollbar para que se vea moderno */
+  .chat-box::-webkit-scrollbar { width: 6px; }
+  .chat-box::-webkit-scrollbar-track { background: #0f172a; }
+  .chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
-  /* HUD superior */
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0 16px 0
+  .chat-msg{ 
+    margin-bottom:5px; padding:5px 8px; background:rgba(255,255,255,0.05); 
+    border-radius:6px; animation: fadeIn .2s; flex-shrink: 0;
   }
-  .timer{
-    font-variant-numeric: tabular-nums;
-    font-size:24px; font-weight:800; letter-spacing:.5px; color:#fff;
-    background:#182444; border:1px solid rgba(255,255,255,.09); padding:8px 12px; border-radius:12px;
-    box-shadow:var(--shadow)
-  }
-  .stars{ display:flex; gap:6px; font-size:24px }
-  .controls{ display:flex; gap:8px; flex-wrap:wrap }
-
-  /* ------------------------------
-     PANTALLA: RESULTADO
-     ------------------------------ */
-  #screen-result{ min-height:100vh; display:grid; place-items:center; text-align:center }
-  .result-card{
-    width:min(720px, 94vw); background:linear-gradient(180deg, #0f1630, #0b1326); border:1px solid rgba(255,255,255,.08);
-    border-radius:18px; padding:20px; box-shadow:var(--shadow)
-  }
-  .metrics{ display:grid; grid-template-columns: repeat(2,1fr); gap:10px; margin:10px 0 18px 0; text-align:left }
-  .metric{ background:#162243; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px }
+  .chat-msg.bad{ color:var(--warn); }
+  .chat-msg.good{ color:var(--ok); }
+  @keyframes fadeIn{ from{opacity:0; transform:translateX(-5px)} to{opacity:1; transform:translateX(0)} }
 
   /* ------------------------------
-     ANIMACIONES DE NAVE (victoria/derrota)
+     TUTORIAL & MODALES
      ------------------------------ */
-  .launch{
-    animation: lift 2.4s ease forwards;
-    transform-origin: 50% 100%;
+  #tutorial-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+    background: #0f172a; border-top: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; z-index: 5000;
+    transform: translateY(100%); transition: transform 0.3s;
   }
-  @keyframes lift{
-    0%{ transform: translateY(0) scale(1)}
-    60%{ transform: translateY(-140px) scale(1.02)}
-    100%{ transform: translateY(-300px) scale(1.05); opacity:0 }
+  #tutorial-bar.active { transform: translateY(0); }
+  
+  #tutorial-hand {
+    position: fixed; top: 0; left: 0; z-index: 6000;
+    font-size: 50px; pointer-events: none; display: none;
+    transition: top 1.5s ease-in-out, left 1.5s ease-in-out;
   }
-  .fail{
-    animation: shake 1.1s ease both
-  }
-  @keyframes shake{
-    0%,100%{ transform: translateX(0) }
-    20%{ transform: translateX(-8px) }
-    40%{ transform: translateX(8px) }
-    60%{ transform: translateX(-6px) }
-    80%{ transform: translateX(6px) }
-  }
+  #tutorial-hand.active { display: block; }
 
-  /* RESPONSIVE */
-  @media (max-width: 980px){
-    .hud{ grid-template-columns: 1fr; }
-    .call-grid{ grid-template-columns: 1fr 1fr; }
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9000;
+    display:flex; align-items:center; justify-content:center;
   }
+  .modal-card{
+    background:#1e293b; padding:30px; border-radius:20px; text-align:center; max-width:500px;
+    border:1px solid #475569; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  }
+  
+  .spotlight-darken { filter: brightness(0.2) grayscale(0.8); pointer-events: none; }
+  .panel.spotlight-active { filter: brightness(1); pointer-events: auto; z-index: 100; box-shadow: 0 0 0 2000px rgba(0,0,0,0.8); }
+
+  svg{ width:0; height:0; position:absolute; }
 </style>
 </head>
 <body>
 
-<div class="wrap">
+<svg>
+  <defs>
+    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
 
-  <!-- ============================
-       PANTALLA 1: HANGAR / BRIEFING
-       ============================ -->
-  <section id="screen-briefing" aria-labelledby="titulo-briefing">
-    <div class="briefing-card" role="dialog" aria-modal="true" aria-label="Briefing de misión en el Hangar">
-      <div class="briefing-top">
-        <div class="avatar-chief" aria-hidden="true">🧑‍🚀</div>
-        <div>
-          <h1 id="titulo-briefing" class="title">Constructores de la Galaxia: <em>Misión a Contrarreloj</em></h1>
-          <p class="subtitle">Tema: Ciudadanía Digital — Netiqueta en videollamadas y colaboración en línea.</p>
+<div id="tutorial-hand">👆</div>
+
+<div id="tutorial-bar">
+  <div id="tutorial-text" style="font-size:18px; color:var(--accent); flex:1; margin-right:20px;">...</div>
+  <button id="btn-next-step" onclick="Tutorial.nextStep()">Siguiente ▶</button>
+</div>
+
+<!-- INICIO -->
+<div id="screen-start" class="modal-overlay">
+  <div class="modal-card">
+    <div style="font-size:50px; margin-bottom:10px;">🚀</div>
+    <h1>Constructores de la Galaxia</h1>
+    <p><strong>Edición Final</strong></p>
+    <p style="font-size:14px; color:#cbd5e1;">Dificultad Dinámica + Interfaz Estable</p>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+      <button onclick="Tutorial.start()">🎓 Entrenamiento</button>
+      <button onclick="Game.start()" style="background:#334155; color:#fff">🎮 Misión Real</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIN -->
+<div id="screen-result" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h1 id="res-title">...</h1>
+    <p id="res-msg">...</p>
+    <div id="res-stars" style="font-size:30px; margin:15px 0;"></div>
+    <button onclick="location.reload()">Menú Principal</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div class="topbar">
+  <div class="lives-container" id="lives-display">❤️❤️❤️</div>
+  <div style="text-align:center">
+    <div style="font-size:12px; opacity:0.7">TIEMPO</div>
+    <div id="timer" style="font-family:monospace; font-size:24px; color:var(--accent); line-height:1">03:00</div>
+  </div>
+</div>
+
+<div class="hud-grid" id="game-grid">
+  
+  <!-- NAVE -->
+  <div id="panel-ship" class="panel">
+    <h4 style="position:absolute; top:5px; left:15px; margin:0; opacity:0.5;">HANGAR</h4>
+    <div class="ship-container">
+      <svg class="ship-svg" viewBox="0 0 200 200" style="width:100%; height:100%; position:relative;">
+        <path id="p1" class="piece" d="M60 140 L140 140 L130 100 L70 100 Z" />
+        <circle id="p2" class="piece" cx="100" cy="100" r="25" />
+        <path id="p3" class="piece" d="M70 140 L40 170 L80 160 Z" />
+        <path id="p4" class="piece" d="M130 140 L160 170 L120 160 Z" />
+        <rect id="p5" class="piece" x="90" y="140" width="20" height="30" />
+        <circle id="p6" class="piece" cx="100" cy="70" r="5" fill="#f59e0b"/>
+      </svg>
+    </div>
+    <div style="text-align:center; padding:5px; color:#64748b" id="progress-txt">Piezas: 0/6</div>
+  </div>
+
+  <!-- EQUIPO -->
+  <div id="panel-team" class="panel">
+    <div class="avatars-grid">
+      <!-- Verde -->
+      <div id="av-verde" class="avatar-card" ondragover="allowDrop(event)" ondrop="handleDrop(event)">
+        <div class="avatar-icon">🐸</div>
+        <div class="bubble-container" id="bub-av-verde">
+          <div class="bubble-icon"></div>
+          <div class="crisis-timer">10</div>
         </div>
+        <span style="font-size:12px;">Verde</span>
       </div>
-
-      <!-- Presentación de reglas con "voz en off" -->
-      <p id="briefing-texto">
-        Jefe de Misión: <strong>“Cadetes, hoy construirán una nave estelar respetando las normas de convivencia digital.”</strong>
-      </p>
-
-      <!-- Reglas -->
-      <div class="rules-grid" aria-label="Reglas principales">
-        <article class="rule" aria-labelledby="regla-plano">
-          <h4 id="regla-plano">Regla del Plano</h4>
-          <p>Seguir el orden indicado para que cada pieza encaje.</p>
-          <div class="demo" aria-label="Ejemplos correctos e incorrectos">
-            <div class="ok">✅ Correcto: Colocar pieza <em>1</em> antes que la <em>2</em>.</div>
-            <div class="bad">❌ Incorrecto: Saltar pasos; la grúa tendrá que retirarla y perderán tiempo.</div>
-          </div>
-        </article>
-        <article class="rule" aria-labelledby="regla-escucha">
-          <h4 id="regla-escucha">Regla de la Escucha</h4>
-          <p>Hablar uno a la vez; respetar el turno del compañero.</p>
-          <div class="demo">
-            <div class="ok">✅ Correcto: Pides turno y esperas tu momento.</div>
-            <div class="bad">❌ Incorrecto: Interrumpes y tomas el control sin permiso.</div>
-          </div>
-        </article>
-        <article class="rule" aria-labelledby="regla-animo">
-          <h4 id="regla-animo">Regla del Ánimo</h4>
-          <p>Si alguien se equivoca, lo apoyamos para que lo intente de nuevo.</p>
-          <div class="demo">
-            <div class="ok">✅ Correcto: “¡Tú puedes! Probemos otra vez.”</div>
-            <div class="bad">❌ Incorrecto: Burlas o reclamos que desaniman.</div>
-          </div>
-        </article>
-      </div>
-
-      <p><strong>Mensaje final:</strong> “Tienen <strong>3 minutos</strong> para completar la nave. Cada error cuesta tiempo. ¡Confío en ustedes!”</p>
-
-      <div class="briefing-actions">
-        <button id="btn-start" aria-label="Comenzar misión">¡Comenzar Misión!</button>
-        <button id="btn-briefing-voz" class="btn-ghost" aria-label="Reproducir narración del briefing">🔊 Narración</button>
-        <button id="btn-creditos" class="btn-ghost" aria-label="Ver créditos">Créditos</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================
-       PANTALLA 2: JUEGO PRINCIPAL
-       ============================ -->
-  <section id="screen-game" class="hidden" aria-label="Vista principal de misión">
-    <div class="topbar" role="toolbar" aria-label="Barra superior de control">
-      <div class="stars" aria-label="Rango de estrellas"><span>⭐</span><span>⭐</span><span>⭐</span></div>
-      <div class="timer" aria-live="polite" id="timer">03:00</div>
-      <div class="controls">
-        <button id="btn-mute" class="btn-mute" aria-pressed="false" aria-label="Silenciar o activar sonido">🔈 Sonido</button>
-        <button id="btn-restart" class="btn-ghost" aria-label="Reiniciar misión">Reiniciar</button>
-      </div>
-    </div>
-
-    <div class="hud">
-
-      <!-- Columna 1: NAVE -->
-      <section class="panel ship-area" aria-label="Nave parcialmente construida">
-        <div class="ship">
-          <!-- Nave como SVG simplificado con piezas -->
-          <svg class="ship-svg" viewBox="0 0 300 300" role="img" aria-label="Nave espacial">
-            <!-- cuerpo -->
-            <g id="piece-1" class="piece">
-              <ellipse cx="150" cy="170" rx="90" ry="50" fill="#1d4ed8"/>
-              <rect x="75" y="160" width="150" height="20" fill="#1e40af"/>
-            </g>
-            <!-- cabina -->
-            <g id="piece-2" class="piece">
-              <ellipse cx="150" cy="130" rx="40" ry="28" fill="#22d3ee"/>
-              <ellipse cx="150" cy="135" rx="26" ry="18" fill="#67e8f9"/>
-            </g>
-            <!-- aleta izquierda -->
-            <g id="piece-3" class="piece">
-              <polygon points="60,190 30,240 100,210" fill="#0ea5b7"/>
-            </g>
-            <!-- aleta derecha -->
-            <g id="piece-4" class="piece">
-              <polygon points="240,190 270,240 200,210" fill="#0ea5b7"/>
-            </g>
-            <!-- motor -->
-            <g id="piece-5" class="piece">
-              <rect x="135" y="220" width="30" height="40" fill="#334155"/>
-              <polygon points="150,260 165,300 135,300" fill="#f59e0b"/>
-            </g>
-            <!-- emblema -->
-            <g id="piece-6" class="piece">
-              <circle cx="150" cy="170" r="14" fill="#f59e0b"/>
-              <text x="150" y="174" text-anchor="middle" font-size="12" fill="#0b0f1a">GC</text>
-            </g>
-          </svg>
+      <!-- Rojo -->
+      <div id="av-rojo" class="avatar-card" ondragover="allowDrop(event)" ondrop="handleDrop(event)">
+        <div class="avatar-icon">🦊</div>
+        <div class="bubble-container" id="bub-av-rojo">
+          <div class="bubble-icon"></div>
+          <div class="crisis-timer">10</div>
         </div>
-        <div class="progress-steps" id="progress-dots" aria-label="Progreso de ensamblaje"></div>
-      </section>
-
-      <!-- Columna 2: VIDEOLLAMADA (compañeros) -->
-      <section class="panel" aria-label="Ventanas de videollamada">
-        <div class="call-grid">
-          <div id="avatar-verde" class="call-window" aria-label="Avatar Verde">
-            <div class="bubble">🙂</div>
-            <div class="storm" aria-hidden="true">⛈️</div>
-            <div class="name-tag">Avatar Verde</div>
-            <div aria-hidden="true" style="font-size:44px">🟢</div>
-          </div>
-          <div id="avatar-rojo" class="call-window" aria-label="Avatar Rojo">
-            <div class="bubble">🙂</div>
-            <div class="storm" aria-hidden="true">⛈️</div>
-            <div class="name-tag">Avatar Rojo</div>
-            <div aria-hidden="true" style="font-size:44px">🔴</div>
-          </div>
-          <div id="avatar-capitan" class="call-window" aria-label="Capitán (tú)">
-            <div class="bubble">🫡</div>
-            <div class="name-tag">Tú — Capitán</div>
-            <div aria-hidden="true" style="font-size:44px">🧑‍✈️</div>
-          </div>
-          <div id="avatar-chat" class="call-window" aria-label="Chat de equipo">
-            <div class="name-tag">Chat</div>
-            <div aria-hidden="true" style="font-size:26px">💬</div>
-          </div>
+        <span style="font-size:12px;">Rojo</span>
+      </div>
+      <!-- Capitán -->
+      <div id="av-cap" class="avatar-card" ondragover="allowDrop(event)" ondrop="handleDrop(event)">
+        <div class="avatar-icon">🧑‍🚀</div>
+        <div class="bubble-container" id="bub-av-cap">
+          <div class="bubble-icon"></div>
+          <div class="crisis-timer">10</div>
         </div>
-      </section>
-
-      <!-- Columna 3: PLANO + HERRAMIENTAS + CHAT -->
-      <aside class="side">
-        <section class="panel plan" aria-label="Plano de Ensamblaje">
-          <h3 style="margin:0 0 8px 0">Plano de Ensamblaje</h3>
-          <div id="plan-steps" class="plan-steps"></div>
-          <div id="plan-block" class="plan-overlay-block" aria-hidden="true">
-            <div>
-              <p>📵 El chat distraído está tapando el plano...</p>
-              <p><strong>Arrastra el 📣 Megáfono del Capitán al Chat</strong> para retomar el foco.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" aria-label="Menú de herramientas">
-          <h3 style="margin:0 0 8px 0">Herramientas</h3>
-          <div class="tools">
-            <!-- Íconos grandes y claros -->
-            <div id="tool-turnos" class="tool" draggable="true" role="button" aria-label="📋 Plano de Turnos" title="📋 Plano de Turnos">📋</div>
-            <div id="tool-animo" class="tool" draggable="true" role="button" aria-label="👍 Emoji de Ánimo" title="👍 Emoji de Ánimo">👍</div>
-            <div id="tool-megafono" class="tool" draggable="true" role="button" aria-label="📣 Megáfono del Capitán" title="📣 Megáfono del Capitán">📣</div>
-          </div>
-          <p style="font-size:12px; color:#bcd" aria-hidden="true">Consejo: Arrastra la herramienta hacia el avatar o al chat cuando ocurra una crisis.</p>
-        </section>
-
-        <section class="panel chat" aria-label="Panel de chat">
-          <div class="chat-messages" id="chat-log" aria-live="polite"></div>
-          <div id="chat-flood" class="chat-flood">
-            <div>
-              <p>💥 Mensajes irrelevantes bloquean la vista.</p>
-              <p><strong>Usa el 📣 Megáfono del Capitán en el Chat</strong>.</p>
-            </div>
-          </div>
-        </section>
-      </aside>
-
-    </div>
-  </section>
-
-  <!-- ============================
-       PANTALLA 3: RESULTADOS
-       ============================ -->
-  <section id="screen-result" class="hidden" aria-label="Resultados de la misión">
-    <div class="result-card">
-      <h2 id="result-title">Resultado</h2>
-      <p id="result-sub">—</p>
-      <div class="metrics">
-        <div class="metric"><strong>Veces que respetaste el turno:</strong> <span id="m-turno">0</span></div>
-        <div class="metric"><strong>Intervenciones exitosas:</strong> <span id="m-interv">0</span></div>
-        <div class="metric"><strong>Compañeros animados:</strong> <span id="m-animo">0</span></div>
-        <div class="metric"><strong>Tiempo restante:</strong> <span id="m-time">0s</span></div>
+        <span style="font-size:12px;">Tú</span>
       </div>
-      <p><strong>Rango:</strong> <span id="rank-stars">⭐</span></p>
-      <div style="display:flex; gap:10px; justify-content:center; margin-top:10px">
-        <button id="btn-play-again">Jugar de nuevo</button>
-        <button id="btn-creditos-final" class="btn-ghost">Créditos</button>
+      <!-- Chat -->
+      <div id="target-chat" class="avatar-card" ondragover="allowDrop(event)" ondrop="handleDrop(event)">
+        <div class="avatar-icon">💬</div>
+        <div class="bubble-container" id="bub-target-chat">
+          <div class="bubble-icon"></div>
+          <div class="crisis-timer">10</div>
+        </div>
+        <span style="font-size:12px;">Chat</span>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- HERRAMIENTAS -->
+  <div id="panel-tools" class="panel">
+    <div class="tools-row">
+      <div id="tool-plano" class="tool" draggable="true" ondragstart="drag(event)" title="Plano">📋</div>
+      <div id="tool-animo" class="tool" draggable="true" ondragstart="drag(event)" title="Ánimo">👍</div>
+      <div id="tool-mega" class="tool" draggable="true" ondragstart="drag(event)" title="Megáfono">📣</div>
+    </div>
+    <div class="chat-box" id="chat-log">
+      <div class="chat-msg">Sistema listo...</div>
+    </div>
+  </div>
 
 </div>
 
 <script>
-/* ===========================================================
-   CONSTRUCTORES DE LA GALAXIA — LÓGICA DEL JUEGO (JS PURO)
-   Código comentado en español para facilitar comprensión.
-   =========================================================== */
-
-/* ----------------------------
-   UTILIDADES DE AUDIO (WebAudio)
-   - Pequeños sonidos generados por osciladores (sin archivos externos)
-   ---------------------------- */
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const audio = new AudioCtx();
-let soundOn = true;
-
-function beep(type="sine", freq=880, dur=0.12, gain=0.05){
-  if(!soundOn) return;
-  const t0 = audio.currentTime;
-  const osc = audio.createOscillator();
-  const g = audio.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  g.gain.value = gain;
-  osc.connect(g).connect(audio.destination);
-  osc.start(t0);
-  osc.stop(t0 + dur);
-}
-
-function chordSuccess(){
-  if(!soundOn) return;
-  // acorde simple mayor
-  beep("triangle", 660, .12, .06);
-  setTimeout(()=>beep("triangle", 880, .12, .06), 60);
-  setTimeout(()=>beep("triangle", 990, .12, .05), 120);
-}
-function gearClick(){ beep("square", 700, .08, .07) }          // "clic de engranaje"
-function powerUpFriend(){ beep("sine", 520, .15, .07); setTimeout(()=>beep("sine", 780, .15, .06), 120) } // "power-up de amistad"
-function achievement(){ chordSuccess() }                        // sonido de logro
-function penalty(){ beep("sawtooth", 180, .22, .08) }           // penalización
-
-/* ----------------------------
-   ACCESIBILIDAD: SPEECH SYNTHESIS
-   ---------------------------- */
-const voice = window.speechSynthesis;
-function speak(texto){
-  // Evitar superposición de voces
-  try{ voice.cancel() }catch(e){}
-  const u = new SpeechSynthesisUtterance(texto);
-  u.lang = "es-MX";
-  u.rate = 1;
-  u.pitch = 1;
-  if(soundOn) voice.speak(u);
-}
-
-/* ----------------------------
-   ESTADO GLOBAL DEL JUEGO
-   ---------------------------- */
-const GAME = {
-  totalPieces: 6,
-  currentStep: 1,
-  placed: 0,
-  timer: 180, // 3:00 minutos en segundos
-  timerId: null,
-  running: false,
-  metrics: {
-    respetoTurno: 0,
-    intervenciones: 0,
-    companerosAnimados: 0,
+/* ========================================================
+   AUDIO & CONFIG
+   ======================================================== */
+const AudioEngine = {
+  ctx: new (window.AudioContext || window.webkitAudioContext)(),
+  playTone: function(type) {
+    if(this.ctx.state === 'suspended') this.ctx.resume();
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.connect(g); g.connect(this.ctx.destination);
+    const now = this.ctx.currentTime;
+    if(type === 'good') {
+      osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+      g.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.2);
+    } else if(type === 'bad') {
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+      g.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.3);
+    } else if(type === 'warn') {
+      osc.type = 'square'; osc.frequency.setValueAtTime(400, now);
+      g.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1);
+    }
   },
-  crisisActive: null, // {type, target, timeoutId}
-  distractedTickId: null, // penalización periódica del chat distraído
-  order: [1,2,3,4,5,6],
-  turnOrder: ["verde","rojo","capitan","verde","rojo","capitan"], // Quién coloca cada pieza
-};
-
-/* ----------------------------
-   ELEMENTOS DEL DOM (atajos)
-   ---------------------------- */
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-
-const screenBriefing = $("#screen-briefing");
-const screenGame = $("#screen-game");
-const screenResult = $("#screen-result");
-const timerEl = $("#timer");
-const planStepsEl = $("#plan-steps");
-const planBlock = $("#plan-block");
-const progressDots = $("#progress-dots");
-const chatLog = $("#chat-log");
-const chatFlood = $("#chat-flood");
-
-const avatarEl = {
-  verde: $("#avatar-verde"),
-  rojo: $("#avatar-rojo"),
-  capitan: $("#avatar-capitan"),
-  chat: $("#avatar-chat"),
-};
-const bubbles = {
-  verde: avatarEl.verde.querySelector(".bubble"),
-  rojo: avatarEl.rojo.querySelector(".bubble"),
-  capitan: avatarEl.capitan.querySelector(".bubble"),
-};
-const storms = {
-  verde: avatarEl.verde.querySelector(".storm"),
-  rojo: avatarEl.rojo.querySelector(".storm"),
-};
-
-const tools = {
-  turnos: $("#tool-turnos"),
-  animo: $("#tool-animo"),
-  megafono: $("#tool-megafono"),
-};
-
-const pieceEls = GAME.order.map(i => document.getElementById(`piece-${i}`));
-
-/* ----------------------------
-   INICIALIZACIÓN DE UI
-   ---------------------------- */
-function formatTime(s){
-  const m = Math.floor(s/60).toString().padStart(2,'0');
-  const r = (s%60).toString().padStart(2,'0');
-  return `${m}:${r}`;
-}
-function drawPlan(){
-  // Pintar el orden de colocación y resaltar el actual
-  planStepsEl.innerHTML = "";
-  GAME.order.forEach((n, idx)=>{
-    const div = document.createElement("div");
-    div.className = "plan-step";
-    const who = GAME.turnOrder[idx];
-    const name = who==="verde"?"Verde":(who==="rojo"?"Rojo":"Capitán");
-    div.textContent = `Paso ${n} → ${name}`;
-    if(n === GAME.currentStep){
-      div.style.outline = `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--accent')}`;
-    }
-    planStepsEl.appendChild(div);
-  });
-}
-function drawProgressDots(){
-  progressDots.innerHTML = "";
-  GAME.order.forEach(n=>{
-    const d = document.createElement("div");
-    d.className = "step-dot" + (n<GAME.currentStep ? " done" : (n===GAME.currentStep?" current":""));
-    progressDots.appendChild(d);
-  });
-}
-function activatePieces(){
-  pieceEls.forEach((el, idx)=>{
-    const step = idx+1;
-    el.classList.remove("placed","active");
-    if(step < GAME.currentStep) el.classList.add("placed");
-    else if(step === GAME.currentStep) el.classList.add("active");
-  });
-}
-
-function resetChat(){
-  chatLog.innerHTML = "";
-  chatFlood.classList.remove("active");
-  planBlock.classList.remove("active");
-}
-
-function postChat(msg){
-  const p = document.createElement("div");
-  p.textContent = `💬 ${msg}`;
-  chatLog.prepend(p);
-}
-
-/* ----------------------------
-   TIMER Y FIN DE PARTIDA
-   ---------------------------- */
-function startTimer(){
-  clearInterval(GAME.timerId);
-  GAME.timerId = setInterval(()=>{
-    if(!GAME.running) return;
-    GAME.timer--;
-    timerEl.textContent = formatTime(GAME.timer);
-    if(GAME.timer<=0){
-      GAME.timer = 0;
-      timerEl.textContent = '00:00';
-      endGame(false);
-    }
-  }, 1000);
-}
-function changeTime(delta){
-  GAME.timer = Math.max(0, GAME.timer + delta);
-  timerEl.textContent = formatTime(GAME.timer);
-  if(delta<0) penalty();
-}
-
-/* ----------------------------
-   EVENTOS ALEATORIOS (CRISIS)
-   Tipos:
-   - rushTurn (Crisis del Turno Apresurado)
-   - frustration (Crisis del Error y la Frustración)
-   - chatNoise (Crisis del Chat Distraído)
-   ---------------------------- */
-function scheduleRandomEvent(){
-  if(!GAME.running) return;
-  // Programar un evento entre 7 y 14 segundos
-  const delay = 7000 + Math.random()*7000;
-  setTimeout(triggerRandomEvent, delay);
-}
-
-function triggerRandomEvent(){
-  if(!GAME.running) return;
-  // No generar si ya hay una crisis activa
-  if(GAME.crisisActive){ scheduleRandomEvent(); return; }
-
-  // Elegir evento, ponderando un poco el chat para variedad
-  const types = ["rushTurn","frustration","chatNoise","rushTurn"];
-  const type = types[Math.floor(Math.random()*types.length)];
-
-  if(type==="rushTurn"){
-    // Avatar equivocado intenta colocar pieza (que NO sea el del turno actual)
-    const current = GAME.turnOrder[GAME.currentStep-1];
-    const others = ["verde","rojo","capitan"].filter(n=>n!==current);
-    const target = others[Math.floor(Math.random()*others.length)];
-    crisisRushTurn(target);
-  }else if(type==="frustration"){
-    const current = GAME.turnOrder[GAME.currentStep-1];
-    // sólo tiene sentido si el que toca no es el capitán (para fomentar apoyo)
-    const target = (current==="capitan") ? (Math.random()<.5?"verde":"rojo") : current;
-    crisisFrustration(target);
-  }else{
-    crisisChatNoise();
+  speak: function(text) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-MX'; u.rate = 1.1;
+    window.speechSynthesis.speak(u);
   }
-}
+};
 
-function clearCrisis(){
-  if(GAME.crisisActive?.timeoutId) clearTimeout(GAME.crisisActive.timeoutId);
-  GAME.crisisActive = null;
-  // limpiar marcas visuales
-  Object.values(avatarEl).forEach(a=>a.classList.remove("rush"));
-  Object.values(storms).forEach(s=>s.classList.remove("active"));
-  chatFlood.classList.remove("active");
-  planBlock.classList.remove("active");
-  if(GAME.distractedTickId){ clearInterval(GAME.distractedTickId); GAME.distractedTickId = null; }
-}
+/* ========================================================
+   ESTADO DEL JUEGO
+   ======================================================== */
+const State = {
+  mode: 'MENU', timer: 180, lives: 3, buildStep: 1,
+  activeCrises: {}, nextSpawnTimes: {}, tutorialIdx: -1, waitingAction: false
+};
 
-function crisisRushTurn(target){
-  GAME.crisisActive = { type:"rushTurn", target };
-  avatarEl[target].classList.add("rush");
-  postChat(`⚠️ ${capitalize(target)} intenta colocar una pieza fuera de turno.`);
-  speak("Atención. Un compañero intenta saltarse el turno. Usa el Plano de Turnos.");
-  // Si no se corrige en 5s, coloca mal la pieza: penalización -10s
-  const timeoutId = setTimeout(()=>{
-    if(GAME.crisisActive && GAME.crisisActive.type==="rushTurn"){
-      postChat("⛔ La grúa retira la pieza mal colocada. -10s");
-      changeTime(-10);
-      clearCrisis();
-      scheduleRandomEvent();
+const UI = {
+  el: id => document.getElementById(id),
+  panels: ['panel-ship', 'panel-team', 'panel-tools'],
+  
+  // CORRECCIÓN DE LOG: Limitar mensajes a 15 para no saturar memoria
+  log: (msg, type='') => {
+    const div = document.createElement('div');
+    div.className = `chat-msg ${type}`;
+    div.innerText = msg;
+    const box = UI.el('chat-log');
+    box.prepend(div);
+    // Eliminar mensajes viejos si hay más de 15
+    if(box.children.length > 15) {
+      box.removeChild(box.lastChild);
     }
-  }, 5000);
-  GAME.crisisActive.timeoutId = timeoutId;
-}
-
-function crisisFrustration(target){
-  GAME.crisisActive = { type:"frustration", target };
-  storms[target]?.classList.add("active");
-  bubbles[target].textContent = "😞";
-  postChat(`⚠️ ${capitalize(target)} se desanimó tras un error.`);
-  speak("Ánimo al compañero. Usa el pulgar de ánimo.");
-  // Sin límite de tiempo: el progreso se estanca si su turno está activo
-}
-
-function crisisChatNoise(){
-  GAME.crisisActive = { type:"chatNoise", target:"chat" };
-  chatFlood.classList.add("active");
-  planBlock.classList.add("active");
-  postChat("📢 El chat se llenó de mensajes irrelevantes y tapa el plano.");
-  speak("Lidera con el megáfono del capitán para enfocar el chat.");
-  // Penalización periódica si no se atiende: -5s cada 7s
-  GAME.distractedTickId = setInterval(()=>{
-    if(GAME.crisisActive?.type==="chatNoise"){
-      postChat("⏳ Perdemos tiempo por distracciones. -5s");
-      changeTime(-5);
-    }
-  }, 7000);
-}
-
-/* ----------------------------
-   INTERACCIÓN PRINCIPAL: COLOCAR PIEZAS
-   - Avanza automáticamente cada ~4s si:
-     a) No hay crisis incompatible
-     b) El turno corresponde
-   ---------------------------- */
-let placeTickId = null;
-function startPlacingLoop(){
-  clearInterval(placeTickId);
-  placeTickId = setInterval(()=>{
-    if(!GAME.running) return;
-    // Si la crisis es chatNoise, aún se puede colocar, pero con distracción (dejamos al jugador elegir resolver)
-    // Si la crisis es frustration y es el turno del avatar afectado, NO avanza
-    if(GAME.crisisActive?.type==="frustration"){
-      const target = GAME.crisisActive.target;
-      const who = GAME.turnOrder[GAME.currentStep-1];
-      if(target === who){
-        // Progreso detenido
-        return;
+  },
+  
+  updateLives: () => {
+    let hearts = "";
+    for(let i=0; i<3; i++) hearts += (i < State.lives) ? "❤️" : "<span class='heart-lost'>💔</span>";
+    UI.el('lives-display').innerHTML = hearts;
+  },
+  reset: () => {
+    for(let i=1; i<=6; i++) UI.el(`p${i}`).classList.remove('placed');
+    UI.el('progress-txt').innerText = "0/6";
+    UI.el('chat-log').innerHTML = "";
+    document.querySelectorAll('.bubble-container').forEach(b => {
+      b.classList.remove('active');
+      b.querySelector('.bubble-icon').innerText = "";
+    });
+    document.querySelectorAll('.tool').forEach(t => t.classList.remove('glow'));
+    UI.unspotlight();
+    State.lives = 3;
+    State.activeCrises = {};
+    State.nextSpawnTimes = {}; 
+    UI.updateLives();
+  },
+  spotlight: (panelId) => {
+    UI.panels.forEach(pid => {
+      const p = UI.el(pid);
+      if(panelId === 'all' || pid === panelId) {
+        p.classList.add('spotlight-active'); p.classList.remove('spotlight-darken');
+      } else {
+        p.classList.remove('spotlight-active'); p.classList.add('spotlight-darken');
       }
+    });
+  },
+  unspotlight: () => UI.panels.forEach(pid => UI.el(pid).classList.remove('spotlight-active', 'spotlight-darken'))
+};
+
+/* ========================================================
+   GAME LOOP LÓGICA
+   ======================================================== */
+const Game = {
+  loopInterval: null,
+
+  start: () => {
+    State.mode = 'GAME';
+    UI.el('screen-start').classList.add('hidden');
+    UI.reset();
+    State.timer = 180;
+    State.buildStep = 1;
+    
+    // TIEMPOS INICIALES
+    const targets = ['av-verde', 'av-rojo', 'target-chat', 'av-cap'];
+    targets.forEach(id => {
+      const delay = 3 + Math.floor(Math.random() * 5); 
+      State.nextSpawnTimes[id] = 180 - delay; 
+    });
+    
+    AudioEngine.speak("Misión iniciada. Los problemas aparecerán aleatoriamente entre 2 y 6 segundos.");
+    UI.log("🚀 Misión iniciada.", "good");
+    
+    Game.loopInterval = setInterval(Game.tick, 1000);
+  },
+
+  tick: () => {
+    if(State.mode !== 'GAME') return;
+
+    // 1. CONTROL DE TIEMPO
+    State.timer--;
+    const m = Math.floor(State.timer/60).toString().padStart(2,'0');
+    const s = (State.timer%60).toString().padStart(2,'0');
+    UI.el('timer').innerText = `${m}:${s}`;
+    
+    if(State.timer <= 0) { Game.over(State.buildStep > 6); return; }
+
+    // 2. CONSTRUCCIÓN AUTOMÁTICA
+    if(State.timer > 0 && State.timer % 28 === 12) Game.buildPiece();
+
+    // 3. GESTIÓN DE CRISIS MÚLTIPLES
+    const targets = ['av-verde', 'av-rojo', 'target-chat', 'av-cap'];
+
+    targets.forEach(id => {
+      // SI YA TIENE CRISIS
+      if(State.activeCrises[id]) {
+        const crisis = State.activeCrises[id];
+        crisis.timer--;
+        
+        const activeBubble = UI.el("bub-"+id);
+        if(activeBubble) activeBubble.querySelector('.crisis-timer').innerText = crisis.timer;
+        
+        if(crisis.timer <= 3) AudioEngine.playTone('warn');
+
+        if(crisis.timer <= 0) {
+          Game.failCrisis(id);
+        }
+      } 
+      // SI ESTÁ LIBRE, REVISAR SU CRONÓMETRO INDIVIDUAL
+      else {
+        if(State.timer <= State.nextSpawnTimes[id]) {
+          if(State.timer > 5) Game.createCrisisFor(id);
+        }
+      }
+    });
+  },
+
+  createCrisisFor: (targetId) => {
+    let type = ''; let icon = ''; let toolId = ''; let msg = '';
+
+    if(targetId === 'target-chat') {
+      type = 'spam'; icon = '📣'; toolId = 'tool-mega'; msg = "¡Ruido en chat!";
+    } else if (targetId === 'av-cap') {
+      type = 'sad'; icon = '👍'; toolId = 'tool-animo'; msg = "¡Te estresaste!";
+    } else {
+      if(Math.random() > 0.5) { type = 'rush'; icon = '📋'; toolId = 'tool-plano'; msg = "¡Salta turno!"; }
+      else { type = 'sad'; icon = '👍'; toolId = 'tool-animo'; msg = "¡Desanimado!"; }
     }
-    // Si la crisis es rushTurn, el avatar equivocado está interrumpiendo; aún así impedimos hasta resolver o penalizar
-    if(GAME.crisisActive?.type==="rushTurn") return;
 
-    // Colocar pieza tras un intervalo (simulación de trabajo en equipo)
-    placeCurrentPiece();
-  }, 4000);
-}
+    State.activeCrises[targetId] = { type, timer: 10 };
 
-function placeCurrentPiece(){
-  if(GAME.currentStep > GAME.totalPieces) return;
-  const idx = GAME.currentStep - 1;
-  const el = pieceEls[idx];
-  // Mostrar animación de “colocar”
-  el.classList.add("placed");
-  GAME.placed++;
-  GAME.currentStep++;
-  drawPlan(); drawProgressDots(); activatePieces();
+    const container = UI.el("bub-" + targetId);
+    container.querySelector('.bubble-icon').innerText = icon;
+    container.querySelector('.crisis-timer').innerText = "10";
+    container.classList.add('active');
 
-  // Si completamos todo → victoria
-  if(GAME.currentStep > GAME.totalPieces){
-    endGame(true);
+    UI.el(toolId).classList.add('glow');
+    UI.log(`⚠️ ${msg}`, 'bad');
+    AudioEngine.playTone('bad');
+  },
+
+  scheduleNextCrisis: (targetId) => {
+    // 2 a 6 segundos de descanso
+    const delay = 2 + Math.floor(Math.random() * 5); 
+    State.nextSpawnTimes[targetId] = State.timer - delay;
+  },
+
+  resolveCrisis: (targetId) => {
+    delete State.activeCrises[targetId];
+    UI.el("bub-" + targetId).classList.remove('active');
+    
+    if(Object.keys(State.activeCrises).length === 0) document.querySelectorAll('.tool').forEach(t => t.classList.remove('glow'));
+
+    AudioEngine.playTone('good');
+    UI.log("✅ Solucionado.", "good");
+    Game.scheduleNextCrisis(targetId);
+  },
+
+  failCrisis: (targetId) => {
+    delete State.activeCrises[targetId];
+    UI.el("bub-" + targetId).classList.remove('active');
+    
+    State.lives--;
+    UI.updateLives();
+    UI.el('panel-team').classList.add('damage-shake');
+    setTimeout(()=>UI.el('panel-team').classList.remove('damage-shake'), 500);
+    
+    AudioEngine.playTone('bad');
+    UI.log("❌ ¡Fallo crítico! -1 Vida", "bad");
+    
+    if(State.lives <= 0) Game.over(false);
+    else {
+      Game.scheduleNextCrisis(targetId);
+    }
+  },
+
+  buildPiece: () => {
+    if(State.buildStep > 6) return;
+    UI.el(`p${State.buildStep}`).classList.add('placed');
+    UI.el('progress-txt').innerText = `Piezas: ${State.buildStep}/6`;
+    UI.log(`🔧 Pieza ${State.buildStep} instalada.`, "good");
+    State.buildStep++;
+    if(State.buildStep > 6) UI.log("✨ ¡Nave lista!", "good");
+  },
+
+  over: (win) => {
+    clearInterval(Game.loopInterval);
+    UI.el('screen-result').classList.remove('hidden');
+    const t = UI.el('res-title');
+    t.innerText = win ? "¡MISIÓN CUMPLIDA!" : "MISIÓN FALLIDA";
+    t.style.color = win ? "var(--ok)" : "var(--warn)";
+    let msg = (!win && State.lives <= 0) ? "El caos superó al equipo." : (!win) ? "El tiempo se agotó." : "¡Excelente gestión del caos!";
+    UI.el('res-msg').innerText = msg;
+    UI.el('res-stars').innerText = win ? (State.lives===3?"⭐⭐⭐":"⭐⭐") : "⭐";
+    if(win) document.querySelector('.ship-svg').classList.add('launch');
+  }
+};
+
+/* ========================================================
+   DRAG & DROP
+   ======================================================== */
+function drag(ev) { ev.dataTransfer.setData("tool", ev.target.id); }
+function allowDrop(ev) { ev.preventDefault(); }
+function handleDrop(ev) {
+  ev.preventDefault();
+  const toolId = ev.dataTransfer.getData("tool");
+  const targetEl = ev.target.closest('.avatar-card');
+  if(!targetEl) return;
+  const targetId = targetEl.id;
+
+  if(State.mode === 'TUTORIAL' && State.waitingAction) {
+    const step = TUTORIAL_STEPS[State.tutorialIdx];
+    if(toolId === step.handFrom && targetId === step.handTo) Tutorial.resolveAction();
+    else AudioEngine.playTone('bad');
     return;
+  } 
+
+  if(State.mode === 'GAME') {
+    const crisis = State.activeCrises[targetId];
+    if(!crisis) return; 
+
+    let correct = false;
+    if(crisis.type === 'rush' && toolId === 'tool-plano') correct = true;
+    else if (crisis.type === 'sad' && toolId === 'tool-animo') correct = true;
+    else if (crisis.type === 'spam' && toolId === 'tool-mega') correct = true;
+
+    if(correct) Game.resolveCrisis(targetId);
+    else { UI.log("❌ Herramienta incorrecta", "bad"); AudioEngine.playTone('bad'); }
   }
 }
 
-/* ----------------------------
-   DRAG & DROP DE HERRAMIENTAS
-   - Arrastrar 📋 al avatar en "rushTurn"
-   - Arrastrar 👍 al avatar en "frustration"
-   - Arrastrar 📣 al Chat en "chatNoise"
-   ---------------------------- */
-Object.values(tools).forEach(t=>{
-  t.addEventListener("dragstart", ev=>{
-    ev.dataTransfer.setData("text/plain", ev.target.id);
-  });
-});
-
-Object.values(avatarEl).forEach(win=>{
-  win.addEventListener("dragover", e=> e.preventDefault());
-  win.addEventListener("drop", onDropTarget);
-});
-
-function onDropTarget(e){
-  e.preventDefault();
-  const toolId = e.dataTransfer.getData("text/plain");
-  const targetId = e.currentTarget.id;
-
-  // Normalizar destino
-  const target = targetId.includes("verde") ? "verde" :
-                 targetId.includes("rojo")  ? "rojo"  :
-                 targetId.includes("capitan") ? "capitan" :
-                 "chat";
-
-  // Verificar crisis activa
-  if(!GAME.crisisActive){
-    postChat("ℹ️ No hay crisis que atender ahora mismo.");
-    return;
-  }
-
-  const c = GAME.crisisActive;
-
-  // 1) Rush Turn → herramienta: turnos + avatar que interrumpe
-  if(c.type==="rushTurn"){
-    if(toolId==="tool-turnos" && (target===c.target)){
-      successRushTurn(target);
-    }else{
-      // Error: ignoramos pero retroalimentamos
-      postChat("❌ Esa no es la herramienta correcta para el problema.");
-      penalty();
-      changeTime(-3);
+/* ========================================================
+   TUTORIAL
+   ======================================================== */
+const Tutorial = {
+  handInterval: null,
+  start: () => {
+    State.mode = 'TUTORIAL'; UI.el('screen-start').classList.add('hidden'); UI.el('tutorial-bar').classList.add('active'); UI.reset(); State.tutorialIdx = -1; Tutorial.nextStep();
+  },
+  nextStep: () => {
+    State.tutorialIdx++; const step = TUTORIAL_STEPS[State.tutorialIdx];
+    if(!step) { Tutorial.end(); return; }
+    const btn = UI.el('btn-next-step'); UI.el('tutorial-text').innerText = step.text; AudioEngine.speak(step.text);
+    if(step.spotlight) UI.spotlight(step.spotlight); else UI.unspotlight();
+    if(step.actionRequired) {
+      State.waitingAction = true; btn.disabled = true; btn.innerText = "Hazlo...";
+      if(step.handFrom) Tutorial.showHand(step.handFrom, step.handTo); if(step.setup) step.setup();
+    } else {
+      State.waitingAction = false; btn.disabled = false; btn.innerText = "Siguiente ▶"; Tutorial.hideHand(); if(step.setup) step.setup();
     }
-  }
-
-  // 2) Frustration → herramienta: ánimo + sobre el avatar desanimado
-  else if(c.type==="frustration"){
-    if(toolId==="tool-animo" && target===c.target){
-      successFrustration(target);
-    }else{
-      postChat("❌ Esa acción no anima al compañero.");
-      penalty();
-      changeTime(-3);
-    }
-  }
-
-  // 3) ChatNoise → herramienta: megáfono + sobre chat
-  else if(c.type==="chatNoise"){
-    if(toolId==="tool-megafono" && target==="chat"){
-      successChatNoise();
-    }else{
-      postChat("❌ El megáfono se usa directamente en el chat distraído.");
-      penalty();
-      changeTime(-3);
-    }
-  }
-}
-
-function successRushTurn(target){
-  gearClick();
-  GAME.metrics.respetoTurno++;
-  GAME.metrics.intervenciones++;
-  postChat("✅ Se respetó el turno. ¡Avancemos!");
-  speak("¡Sigamos el orden para que todo encaje!");
-  tipOnScreen("¡Uno por uno es más veloz, si escuchamos la misma voz!");
-  clearCrisis();
-  scheduleRandomEvent();
-}
-
-function successFrustration(target){
-  powerUpFriend();
-  GAME.metrics.companerosAnimados++;
-  GAME.metrics.intervenciones++;
-  bubbles[target].textContent = "🙂";
-  postChat("✅ Ánimo recuperado. ¡Buen trabajo en equipo!");
-  speak("¡No te preocupes, inténtalo de nuevo!");
-  tipOnScreen("¡Un equipo que se apoya, cualquier error lo arrolla!");
-  clearCrisis();
-  scheduleRandomEvent();
-}
-
-function successChatNoise(){
-  achievement();
-  GAME.metrics.intervenciones++;
-  postChat("✅ El chat volvió a enfocarse en la misión.");
-  speak("¡Excelente liderazgo, Capitán!");
-  tipOnScreen("¡Una charla a la vez, para lograrlo con rapidez!");
-  clearCrisis();
-  scheduleRandomEvent();
-}
-
-/* ----------------------------
-   CONSEJOS EN PANTALLA (feedback textual breve)
-   ---------------------------- */
-let tipTimeout = null;
-function tipOnScreen(text){
-  const el = document.createElement("div");
-  el.setAttribute("role","status");
-  el.style.position="fixed";
-  el.style.left="50%"; el.style.top="14px"; el.style.transform="translateX(-50%)";
-  el.style.background="#0b1326";
-  el.style.border="1px solid rgba(255,255,255,.15)";
-  el.style.padding="8px 12px";
-  el.style.borderRadius="12px";
-  el.style.boxShadow="var(--shadow)";
-  el.style.zIndex=9999;
-  el.style.pointerEvents="none";
-  el.textContent = text;
-  document.body.appendChild(el);
-  clearTimeout(tipTimeout);
-  tipTimeout = setTimeout(()=> el.remove(), 2200);
-}
-
-/* ----------------------------
-   CONTROLES DE FLUJO DE PANTALLAS
-   ---------------------------- */
-function gotoBriefing(){
-  screenBriefing.classList.remove("hidden");
-  screenGame.classList.add("hidden");
-  screenResult.classList.add("hidden");
-}
-function gotoGame(){
-  screenBriefing.classList.add("hidden");
-  screenGame.classList.remove("hidden");
-  screenResult.classList.add("hidden");
-}
-function gotoResult(){
-  screenBriefing.classList.add("hidden");
-  screenGame.classList.add("hidden");
-  screenResult.classList.remove("hidden");
-}
-
-/* ----------------------------
-   INICIO Y REINICIO DE PARTIDA
-   ---------------------------- */
-function newGame(){
-  // Reiniciar estado
-  GAME.currentStep = 1;
-  GAME.placed = 0;
-  GAME.timer = 180;
-  GAME.metrics = { respetoTurno:0, intervenciones:0, companerosAnimados:0 };
-  GAME.running = true;
-  clearCrisis();
-  resetChat();
-  drawPlan(); drawProgressDots(); activatePieces();
-  timerEl.textContent = formatTime(GAME.timer);
-  startTimer();
-  startPlacingLoop();
-  scheduleRandomEvent();
-}
-
-function endGame(victory){
-  GAME.running = false;
-  clearInterval(GAME.timerId);
-  clearInterval(placeTickId);
-  clearCrisis();
-
-  // Animación en la nave (éxito o fallo)
-  const shipSvg = document.querySelector(".ship-svg");
-  shipSvg.classList.remove("launch","fail");
-  void shipSvg.offsetWidth; // reflow
-  shipSvg.classList.add(victory ? "launch":"fail");
-
-  // Calcular estrellas (1-3) según tiempo restante y cooperación
-  const t = GAME.timer; // segundos
-  const coop = GAME.metrics.intervenciones; // colaboraciones
-  let stars = 1;
-  if(victory && (t>=60 || coop>=3)) stars = 2;
-  if(victory && (t>=100 || coop>=5)) stars = 3;
-
-  // Rellenar pantalla de resultados
-  $("#result-title").textContent = victory ? "¡Victoria!" : "Misión Fallida";
-  $("#result-sub").textContent = victory
-    ? "La nave está completa. ¡Listos para despegar!"
-    : "Se acabó el tiempo con la nave incompleta. ¡La próxima saldrá mejor!";
-  $("#m-turno").textContent = GAME.metrics.respetoTurno;
-  $("#m-interv").textContent = GAME.metrics.intervenciones;
-  $("#m-animo").textContent = GAME.metrics.companerosAnimados;
-  $("#m-time").textContent = `${t}s`;
-  $("#rank-stars").textContent = "⭐".repeat(stars);
-
-  // Mostrar resultados tras un pequeño delay para que se vea la animación
-  setTimeout(()=> gotoResult(), 1100);
-}
-
-/* ----------------------------
-   BOTONES Y ACCIONES DE UI
-   ---------------------------- */
-$("#btn-start").addEventListener("click", ()=>{
-  // desbloquear audio en primer gesto
-  if(audio.state==="suspended"){ audio.resume(); }
-  gotoGame();
-  newGame();
-  speak("¡Tripulación, iniciamos misión! Recuerden: plano, escucha y ánimo. Tres minutos en el reloj.");
-});
-$("#btn-restart").addEventListener("click", ()=>{ gotoGame(); newGame(); });
-$("#btn-play-again").addEventListener("click", ()=>{ gotoGame(); newGame(); });
-
-$("#btn-mute").addEventListener("click", (e)=>{
-  soundOn = !soundOn;
-  e.currentTarget.setAttribute("aria-pressed", String(!soundOn));
-  e.currentTarget.textContent = soundOn ? "🔈 Sonido" : "🔇 Silencio";
-});
-
-$("#btn-briefing-voz").addEventListener("click", ()=>{
-  speak("Cadetes, hoy construirán una nave estelar respetando la netiqueta. Regla del plano: sigan el orden indicado. Regla de la escucha: un turno de habla a la vez. Regla del ánimo: apoyen a sus compañeros. Tienen tres minutos. Cada error cuesta tiempo. ¡Confío en ustedes!");
-});
-
-function showCreditos(){
-  alert("Créditos:\n• Diseño pedagógico y juego: Gnius Club\n• Desarrollo: HTML5, CSS, JS puro\n• Accesibilidad: SpeechSynthesis + alto contraste\n• Sonidos: WebAudio API (osciladores)");
-}
-$("#btn-creditos").addEventListener("click", showCreditos);
-$("#btn-creditos-final").addEventListener("click", showCreditos);
-
-/* ----------------------------
-   AYUDAS VARIAS
-   ---------------------------- */
-function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
-
-/* ----------------------------
-   ARRANQUE VISUAL DEL BRIEFING
-   (texto animado simple)
-   ---------------------------- */
-(function typeIntro(){
-  const txt = 'Jefe de Misión: “Cadetes, construyan su nave siguiendo tres reglas: el Plano, la Escucha y el Ánimo. ¡Adelante!”';
-  const el = document.getElementById("briefing-texto");
-  let i=0;
-  const tick = ()=> {
-    if(i<=txt.length){ el.textContent = txt.slice(0,i++); requestAnimationFrame(tick); }
-  };
-  tick();
-})();
-
-/* ----------------------------
-   ACTIVACIÓN INICIAL DE PANELES
-   ---------------------------- */
-drawPlan(); drawProgressDots(); activatePieces();
-
-/* ===========================================================
-   FIN DEL SCRIPT
-   =========================================================== */
+  },
+  resolveAction: () => {
+    State.waitingAction = false; Tutorial.hideHand(); AudioEngine.playTone('good');
+    UI.el('btn-next-step').disabled = false; UI.el('btn-next-step').innerText = "¡Bien! Siguiente ▶";
+    document.querySelectorAll('.tool').forEach(t => t.classList.remove('glow'));
+    const b = UI.el('bub-av-rojo'); if(b) b.classList.remove('active');
+  },
+  showHand: (from, to) => {
+    const hand = UI.el('tutorial-hand'); hand.classList.add('active'); clearInterval(Tutorial.handInterval);
+    const move = () => {
+      const f = UI.el(from).getBoundingClientRect(); const t = UI.el(to).getBoundingClientRect();
+      hand.style.transition = 'none'; hand.style.top = (f.top+10)+'px'; hand.style.left = (f.left+10)+'px'; hand.classList.remove('hand-click');
+      requestAnimationFrame(() => { setTimeout(() => {
+          hand.style.transition = 'top 1.5s ease-in-out, left 1.5s ease-in-out';
+          hand.style.top = (t.top+20)+'px'; hand.style.left = (t.left+20)+'px'; hand.classList.add('hand-click');
+      }, 100);});
+    }; move(); Tutorial.handInterval = setInterval(move, 2200);
+  },
+  hideHand: () => { clearInterval(Tutorial.handInterval); UI.el('tutorial-hand').classList.remove('active'); },
+  end: () => { State.mode = 'MENU'; UI.el('tutorial-bar').classList.remove('active'); AudioEngine.speak("Listo."); setTimeout(Game.start, 1000); }
+};
+const TUTORIAL_STEPS = [
+  { text: "En esta misión, los problemas ocurren de forma individual y aleatoria.", spotlight: 'panel-team', actionRequired: false },
+  { text: "Rojo intenta saltarse el turno. Arreglalo.", spotlight: 'all', actionRequired: true, handFrom:'tool-plano', handTo:'av-rojo', setup:()=>{
+      const b = UI.el('bub-av-rojo'); b.querySelector('.bubble-icon').innerText="📋"; b.querySelector('.crisis-timer').innerText="--"; b.classList.add('active'); UI.el('tool-plano').classList.add('glow');
+  }},
+  { text: "Cuando arreglas un problema, ese personaje volverá a fallar entre 2 y 6 segundos después. ¡Mantente alerta!", spotlight: 'all', actionRequired: false }
+];
 </script>
 </body>
 </html>
